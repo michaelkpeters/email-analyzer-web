@@ -14,10 +14,10 @@ Run this directly on your **Proxmox host shell** (as `root`). It will:
 3. Start the service and print the URL
 
 ```bash
-bash -c "$(wget -qLO - https://raw.githubusercontent.com/YOURUSER/sublime-analyzer-web/main/proxmox-helper.sh)"
+bash -c "$(wget -qLO - https://raw.githubusercontent.com/michaelkpeters/email-analyzer-web/main/proxmox-helper.sh)"
 ```
 
-> **Before using:** Replace `YOURUSER/sublime-analyzer-web` with your actual repo path, or clone the repo and run it locally.
+> The one-liner below points to **your** repo (`michaelkpeters/email-analyzer-web`).
 
 ### Local / Offline Helper Script
 
@@ -39,7 +39,7 @@ sudo bash proxmox-helper.sh
 
 ```bash
 cd /opt
-git clone <repo> sublime-analyzer
+git clone https://github.com/michaelkpeters/email-analyzer-web.git sublime-analyzer
 cd sublime-analyzer
 docker compose up -d
 ```
@@ -52,7 +52,7 @@ Open `http://<server-ip>:8000`
 
 ```bash
 cd /opt
-git clone <repo> sublime-analyzer
+git clone https://github.com/michaelkpeters/email-analyzer-web.git sublime-analyzer
 cd sublime-analyzer
 chmod +x install.sh
 sudo ./install.sh
