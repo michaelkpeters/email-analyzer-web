@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Analyzer - Powered by Sublime.Security</title>
+  <style>
+    :root {
+      --bg: #0b0d10;
+      --surface: #12151a;
+      --border: #1e2330;
+      --text: #c9d1d9;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+      --accent-2: #3fb950;
+      --danger: #f85149;
+      --warning: #d29922;
+    }
+    :root[data-theme="light"] {
+      --bg: #ffffff;
+      --surface: #f6f8fa;
+      --border: #d0d7de;
+      --text: #1f2328;
+      --muted: #6e7781;
+      --accent: #0969da;
+      --accent-2: #1a7f37;
+      --danger: #cf222e;
+      --warning: #9a6700;
+    }
+    * { box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+      margin: 0;
+      padding: 2rem;
+      line-height: 1.5;
+      max-width: 1100px;
+    }
+    .header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    h1 { margin: 0; font-size: 1.5rem; font-weight: 700; }
+    .subtitle { color: var(--muted); margin-bottom: 1.5rem; }
+    .theme-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.4rem 0.6rem;
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      color: var(--text);
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .theme-btn:hover { background: var(--bg); border-color: var(--accent); }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .dropzone {
+      border-radius: 10px;
+      padding: 3rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .dropzone.dragover {
+      background: rgba(88, 166, 255, 0.06);
+    }
+    .dropzone input { display: none; }
+    .btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.6rem 1.2rem;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* Metadata grid */
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .meta-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      min-width: 0; /* allow shrinking below content size */
+    }
+    .meta-item .label {
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-bottom: 0.25rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .meta-item .value {
+      font-weight: 600;
+      font-size: 0.95rem;
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    /* Badges */
+    .severity {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .severity-critical { background: rgba(248, 81, 73, 0.15); color: var(--danger); }
+    .severity-high     { background: rgba(210, 153, 34, 0.15); color: var(--warning); }
+    .severity-medium   { background: rgba(88, 166, 255, 0.15); color: var(--accent); }
+    .severity-low, .severity-info { background: rgba(63, 185, 80, 0.15); color: var(--accent-2); }
+    .badge-match { background: rgba(248, 81, 73, 0.15); color: var(--danger); }
+    .badge-no-match { background: rgba(63, 185, 80, 0.15); color: var(--accent-2); }
+
+    /* Tables */
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 0.5rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 600px;
+    }
+    th, td {
+      text-align: left;
+      padding: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    th { color: var(--muted); font-weight: 500; font-size: 0.85rem; }
+    td code {
+      background: var(--bg);
+      padding: 0.15rem 0.3rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      word-break: break-all;
+    }
+    .empty { color: var(--muted); font-style: italic; }
+    .error { color: var(--danger); }
+
+    /* Recommendation banner */
+    .rec-banner {
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+      font-weight: 600;
+      font-size: 1rem;
+      border: 1px solid;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .rec-banner::before {
+      font-size: 1.25rem;
+      line-height: 1;
+    }
+    .rec-block, .rec-high {
+      background: rgba(248, 81, 73, 0.12);
+      color: var(--danger);
+      border-color: rgba(248, 81, 73, 0.35);
+    }
+    .rec-block::before { content: "🚫"; }
+    .rec-high::before { content: "⚠️"; }
+    .rec-moderate {
+      background: rgba(210, 153, 34, 0.12);
+      color: var(--warning);
+      border-color: rgba(210, 153, 34, 0.35);
+    }
+    .rec-moderate::before { content: "⚡"; }
+    .rec-low, .rec-info {
+      background: rgba(88, 166, 255, 0.12);
+      color: var(--accent);
+      border-color: rgba(88, 166, 255, 0.35);
+    }
+    .rec-low::before { content: "ℹ️"; }
+    .rec-info::before { content: "ℹ️"; }
+    .rec-clean {
+      background: rgba(63, 185, 80, 0.12);
+      color: var(--accent-2);
+      border-color: rgba(63, 185, 80, 0.35);
+    }
+    .rec-clean::before { content: "✅"; }
+
+    pre {
+      background: var(--bg);
+      padding: 1rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Email Analyzer</h1>
+    <button id="themeToggle" class="theme-btn" aria-label="Toggle dark/light mode">🌙</button>
+  </div>
+  <div class="subtitle">
+    Drag an Outlook <code>.msg</code> or <code>.eml</code> file to analyze it with the free Sublime Security Analyzer API.
+  </div>
+
+  <div class="card">
+    <label class="dropzone" id="dropzone">
+      <input type="file" id="fileInput" accept=".msg,.eml">
+      <div><strong>Drop a .msg or .eml file here</strong> or click to browse</div>
+      <div style="color:var(--muted); font-size:0.85rem; margin-top:0.4rem;">.msg and .eml files are supported</div>
+    </label>
+  </div>
+
+  <div id="results" style="display:none;">
+    <div class="rec-banner rec-clean" id="recBanner" style="display:none;"></div>
+
+    <div class="card">
+      <h2>Email Metadata</h2>
+      <div class="meta-grid" id="metaGrid"></div>
+    </div>
+
+    <div class="card">
+      <h2>Matched Rules <span id="ruleCount" style="color:var(--muted); font-size:0.85rem; font-weight:400;"></span></h2>
+      <div class="table-wrap" id="ruleResults"></div>
+    </div>
+
+  </div>
+
+  <script>
+    const API_BASE = "";  // served from same origin as backend
+    const dropzone = document.getElementById("dropzone");
+    const fileInput = document.getElementById("fileInput");
+    const results = document.getElementById("results");
+
+    // Theme toggle
+    const themeToggle = document.getElementById("themeToggle");
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+      document.documentElement.setAttribute("data-theme", savedTheme);
+      themeToggle.textContent = savedTheme === "light" ? "☀️" : "🌙";
+    }
+    themeToggle.addEventListener("click", () => {
+      const current = document.documentElement.getAttribute("data-theme");
+      const next = current === "light" ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", next);
+      localStorage.setItem("theme", next);
+      themeToggle.textContent = next === "light" ? "☀️" : "🌙";
+    });
+
+    ["dragenter","dragover","dragleave","drop"].forEach(evt => {
+      dropzone.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); });
+    });
+    ["dragenter","dragover"].forEach(evt => {
+      dropzone.addEventListener(evt, () => dropzone.classList.add("dragover"));
+    });
+    ["dragleave","drop"].forEach(evt => {
+      dropzone.addEventListener(evt, () => dropzone.classList.remove("dragover"));
+    });
+
+    dropzone.addEventListener("drop", e => {
+      const files = e.dataTransfer.files;
+      if (files.length) handleFile(files[0]);
+    });
+    fileInput.addEventListener("change", e => {
+      if (e.target.files.length) handleFile(e.target.files[0]);
+    });
+
+    function _isEmailFile(name) {
+      const n = name.toLowerCase();
+      return n.endsWith(".msg") || n.endsWith(".eml");
+    }
+
+    async function handleFile(file) {
+      if (!_isEmailFile(file.name)) {
+        alert("Only .msg and .eml files are accepted.");
+        return;
+      }
+      results.style.display = "none";
+      dropzone.querySelector("div strong").textContent = "Analyzing…";
+
+      const form = new FormData();
+      form.append("file", file);
+
+      try {
+        const res = await fetch(`${API_BASE}/scan`, { method: "POST", body: form });
+        let data;
+        const contentType = res.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+          data = await res.json();
+        } else {
+          const text = await res.text();
+          throw new Error(`HTTP ${res.status} — non-JSON response: ${text.slice(0, 300)}`);
+        }
+        if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
+        render(data);
+      } catch (err) {
+        document.getElementById("ruleResults").innerHTML = `<div class="error">Error: ${escapeHtml(err.message)}</div>`;
+        results.style.display = "block";
+      } finally {
+        dropzone.querySelector("div strong").textContent = "Drop a .msg or .eml file here";
+        fileInput.value = "";
+      }
+    }
+
+    function render(data) {
+      const recBanner = document.getElementById("recBanner");
+      if (data.recommended_action) {
+        recBanner.textContent = data.recommended_action;
+        recBanner.className = "rec-banner rec-" + (data.recommendation_level || "clean");
+        recBanner.style.display = "";
+      } else {
+        recBanner.style.display = "none";
+      }
+
+      const meta = {
+        "Filename": data.filename,
+        "From": data.sender || "—",
+        "To": data.recipients.join(", ") || "—",
+        "Subject": data.subject || "—",
+        "Date": data.date ? new Date(data.date).toLocaleString() : "—",
+        "Attachments": data.attachment_names.join(", ") || "—",
+        "Original Size": `${data.msg_size_bytes.toLocaleString()} bytes`,
+        "EML Size": `${data.eml_size_bytes.toLocaleString()} bytes`,
+        "Scan Time": `${data.scan_duration_ms.toFixed(1)} ms`,
+        "Analyzer": `<a href="${escapeHtml(data.analyzer_url)}" target="_blank" style="color:var(--accent)">${escapeHtml(data.analyzer_url)}</a>`,
+      };
+      document.getElementById("metaGrid").innerHTML = Object.entries(meta)
+        .map(([k,v]) => `<div class="meta-item"><div class="label">${k}</div><div class="value">${v}</div></div>`)
+        .join("");
+
+      const matchedRules = data.rule_results.filter(r => r.result === true);
+      const ruleCount = document.getElementById("ruleCount");
+      const ruleResultsDiv = document.getElementById("ruleResults");
+      if (!matchedRules.length) {
+        ruleCount.textContent = "";
+        ruleResultsDiv.innerHTML = `<div class="empty">No Sublime rules matched this email.</div>`;
+      } else {
+        ruleCount.textContent = `(${matchedRules.length} matched)`;
+        ruleResultsDiv.innerHTML = `
+          <table>
+            <thead><tr><th>Severity</th><th>Rule</th><th>Source</th><th>Time</th></tr></thead>
+            <tbody>
+              ${matchedRules.map(r => `
+                <tr>
+                  <td><span class="severity severity-${r.rule.severity}">${r.rule.severity}</span></td>
+                  <td title="${escapeHtml(r.rule.id)}">${escapeHtml(r.rule.name)}</td>
+                  <td><code>${escapeHtml((r.rule.source || '').slice(0, 60))}${(r.rule.source || '').length > 60 ? '…' : ''}</code></td>
+                  <td>${r.execution_time.toFixed(4)}s</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        `;
+      }
+
+      results.style.display = "block";
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+[Unit]
+Description=Sublime Security Email Analyzer
+After=network.target
+
+[Service]
+Type=simple
+User=analyzer
+Group=analyzer
+WorkingDirectory=/opt/sublime-analyzer
+Environment="PATH=/opt/sublime-analyzer/venv/bin"
+Environment="PYTHONUNBUFFERED=1"
+Environment="PORT=8000"
+ExecStart=/opt/sublime-analyzer/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

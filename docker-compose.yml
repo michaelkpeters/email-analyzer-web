@@ -1,0 +1,16 @@
+services:
+  analyzer:
+    build: .
+    container_name: sublime-analyzer
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - SUBLIME_API_BASE=https://analyzer.sublime.security
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
