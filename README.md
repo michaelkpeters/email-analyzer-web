@@ -144,51 +144,45 @@ export PORT=8080
 
 ---
 
-      147 +## 🔒 What Happens With Your Data?
-      148 +
-      149 +### Short Answer
-      150 +
-      151 +**Uploaded emails are never stored on this server.** They exist only in temporary memory (RAM) for t
-          +he few seconds it takes to analyze them, and are then immediately discarded.
-      152 +
-      153 +### Detailed Data Flow
-      154 +
-      155 +| Stage | What Happens | Retained? |
-      156 +|---|---|---|
-      157 +| **Upload** | Browser sends file to this app via HTTPS | ❌ No |
-      158 +| **Processing** | File is read into memory and converted to `.eml` format | ❌ No (RAM only) |
-      159 +| **Analysis** | Raw email is base64-encoded and sent to Sublime Security's free Analyzer API at `an
-          +alyzer.sublime.security` | Subject to [Sublime's Privacy Policy](https://sublime.security/privacy) |
-      160 +| **Results** | Rule matches and metadata are returned to your browser | ❌ No file content is retai
-          +ned |
-      161 +| **After Request** | All file bytes are removed from server memory | ❌ No |
-      162 +
-      163 +### What This Server Does NOT Do
-      164 +
-      165 +- ❌ **No disk storage** — emails are never written to disk
-      166 +- ❌ **No database** — no metadata, filenames, or results are logged or stored
-      167 +- ❌ **No authentication required** — we don't collect or store any user accounts or credentials
-      168 +- ❌ **No analytics or tracking** — no cookies, trackers, or usage telemetry
-      169 +
-      170 +### What Sublime Security Receives
-      171 +
-      172 +When you click **Analyze**, the raw email content is sent directly to the **Sublime Security Analyze
-          +r API** for rule evaluation. This is an unauthenticated public API endpoint. For questions about how
-          + Sublime handles that data, refer to their [Privacy Policy](https://sublime.security/privacy).
-      173 +
-      174 +### If You Handle Sensitive Data
-      175 +
-      176 +This app is designed for convenience and quick triage. If you analyze emails containing:
-      177 +- PII (Personally Identifiable Information)
-      178 +- HIPAA-protected health information
-      179 +- Attorney-client privileged communications
-      180 +- Financial or classified data
-      181 +
-      182 +...you should verify that sending that content to a third-party API (Sublime Security) complies with
-          + your organization's data handling policies.
-      183 +
-      184 +---
-      185 +
-      186  ## License
-      187
-      188  Same as the original project.
+## 🔒 What Happens With Your Data?
+
+### Short Answer
+
+**Uploaded emails are never stored on this server.** They exist only in temporary memory (RAM) for the few seconds it takes to analyze them, and are then immediately discarded.
+
+### Detailed Data Flow
+
+| Stage | What Happens | Retained? |
+|---|---|---|
+| **Upload** | Browser sends file to this app via HTTPS | ❌ No |
+| **Processing** | File is read into memory and converted to `.eml` format | ❌ No (RAM only) |
+| **Analysis** | Raw email is base64-encoded and sent to Sublime Security's free Analyzer API at `analyzer.sublime.security` | Subject to [Sublime's Privacy Policy](https://sublime.security/privacy) |
+| **Results** | Rule matches and metadata are returned to your browser | ❌ No file content is retained |
+| **After Request** | All file bytes are removed from server memory | ❌ No |
+
+### What This Server Does NOT Do
+
+- ❌ **No disk storage** — emails are never written to disk
+- ❌ **No database** — no metadata, filenames, or results are logged or stored
+- ❌ **No authentication required** — we don't collect or store any user accounts or credentials
+- ❌ **No analytics or tracking** — no cookies, trackers, or usage telemetry
+
+### What Sublime Security Receives
+
+When you click **Analyze**, the raw email content is sent directly to the **Sublime Security Analyzer API** for rule evaluation. This is an unauthenticated public API endpoint. For questions about how Sublime handles that data, refer to their [Privacy Policy](https://sublime.security/privacy).
+
+### If You Handle Sensitive Data
+
+This app is designed for convenience and quick triage. If you analyze emails containing:
+- PII (Personally Identifiable Information)
+- HIPAA-protected health information
+- Attorney-client privileged communications
+- Financial or classified data
+
+...you should verify that sending that content to a third-party API (Sublime Security) complies with your organization's data handling policies.
+
+---
+
+## License
+
+Same as the original project.
